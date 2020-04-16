@@ -62,6 +62,8 @@ for (i in 1:length(my.city))
            
   final_df <- rbind_list(df_list) 
   
+#Figure out a way to pull model year if applicable (cars, bikes, etc)  
+  
 # Troubleshoot date scrape
 # dates <-  html_nodes(page, 'time') %>%
 #   html_attr('datetime')
