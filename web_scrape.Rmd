@@ -1,0 +1,78 @@
+---
+title: "Craigslist Scraper"
+output: html_notebook
+---
+
+
+### Essential Packages
+```{r}
+library(tidyverse)
+library(rvest)
+library(xml2)
+library(jsonlite)
+library(ggplot2)
+```
+
+
+### Run scripts and interact in the terminal.
+```{r}
+### Enter numeric value for number of cities you would like to pull results from
+city.count <- as.numeric(readline(prompt="How Many Cities Would you like to search? "))
+
+### Only enter cities using their craigslist naming conventions.  Type 'sfbay' for san francisco
+my.city <- c()
+x <- 1
+
+while (x <= city.count)
+{
+  my.city[x] <- readline(prompt="Enter City: ")
+  x <- x +1  
+}
+
+### Enter search criteria for web scrape
+my.search <- readline(prompt="Enter Search: ")
+my.search <- str_replace(my.search," ","+")
+my.maxprice <- readline(prompt="Maximum Price: ")
+my.minprice <-readline(prompt="Minimum Price: ")
+
+
+```
+
+```{r}
+### Loop through urls declared using user imput, pull results, append into dataframe.
+### Issues to resolve, script only scraping first page of craigslist results.  Need to loop through remaining pages based on length of total results.
+
+df_list <- list()
+
+for (i in 1:length(my.city))
+{
+  url <- paste("https://",my.city[i],".craigslist.org/search/sss?query=",my.search,"&min_price=",my.minprice,"&max_price=",my.maxprice, sep = "")
+  page <- read_html(url)
+
+  title <- html_nodes(page, 'a.result-title') %>% 
+    html_text() 
+
+  price <- html_nodes(page, '.result-meta .result-price') %>% 
+    html_text() 
+
+
+  df_list[[i]] <- data_frame(title, price) %>% 
+    mutate(city = my.city[i],
+           price = as.numeric(str_remove(price,"\\$")))
+           
+  final_df <- rbind_list(df_list) 
+  
+# Troubleshoot date scrape
+# dates <-  html_nodes(page, 'time') %>%
+#   html_attr('datetime')
+
+  #Troubleshoot neighborhood scrape
+# locales <-
+#   html_nodes(page, ".result-hood") %>%
+#   html_text() 
+  
+}
+
+hist(final_df$price)
+```
+
