@@ -46,14 +46,28 @@ df_list <- list()
 
 for (i in 1:length(my.city))
 {
+  
   url <- paste("https://",my.city[i],".craigslist.org/search/sss?query=",my.search,"&min_price=",my.minprice,"&max_price=",my.maxprice, sep = "")
   page <- read_html(url)
+  
+  ### Find total results
+  total_count <- html_node(page, '.totalcount') %>% 
+    html_text() %>% 
+    as.numeric()
+  
+  ### Create vector of page results.  Use this vector to loop through additional pages and gather data.
+  page_count <- floor(total_count/100)
+  pages <- c(0:page_count)
+  pages <- pages*120
+  
 
   title <- html_nodes(page, 'a.result-title') %>% 
     html_text() 
 
   price <- html_nodes(page, '.result-meta .result-price') %>% 
     html_text() 
+  
+
 
 
   df_list[[i]] <- data_frame(title, price) %>% 
@@ -62,7 +76,7 @@ for (i in 1:length(my.city))
            
   final_df <- rbind_list(df_list) 
   
-#Figure out a way to pull model year if applicable (cars, bikes, etc)  
+#Figure out a way to pull model year if applicable (cars, bikes, etc2)  
   
 # Troubleshoot date scrape
 # dates <-  html_nodes(page, 'time') %>%
