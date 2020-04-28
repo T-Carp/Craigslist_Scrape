@@ -43,6 +43,7 @@ my.minprice <-readline(prompt="Minimum Price: ")
 ### Issues to resolve, script only scraping first page of craigslist results.  Need to loop through remaining pages based on length of total results.
 
 df_list <- list()
+final_list <- list()
 
 for (i in 1:length(my.city))
 {
@@ -60,21 +61,25 @@ for (i in 1:length(my.city))
   pages <- c(0:page_count)
   pages <- pages*120
   
-
-  title <- html_nodes(page, 'a.result-title') %>% 
-    html_text() 
-
-  price <- html_nodes(page, '.result-meta .result-price') %>% 
+for (l in 1:length(pages))
+{
+  page_data <- paste(url,"&s=",pages[l],sep="") %>% 
+    read_html()
+  
+  title <- html_nodes(page_data, 'a.result-title') %>% 
     html_text() 
   
-
-
-
-  df_list[[i]] <- data_frame(title, price) %>% 
+   price <- html_nodes(page_data, '.result-meta .result-price') %>% 
+    html_text() 
+   
+   
+  df_list[[l]] <- data_frame(title, price) %>% 
     mutate(city = my.city[i],
            price = as.numeric(str_remove(price,"\\$")))
+}
+
            
-  final_df <- rbind_list(df_list) 
+  final_list[[i]] <- as_tibble(bind_rows(df_list))
   
 #Figure out a way to pull model year if applicable (cars, bikes, etc2)  
   
@@ -86,9 +91,9 @@ for (i in 1:length(my.city))
 # locales <-
 #   html_nodes(page, ".result-hood") %>%
 #   html_text() 
-  
 }
 
-hist(final_df$price)
+df <- bind_rows(final_list)
+
 ```
 
